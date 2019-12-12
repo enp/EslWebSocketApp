@@ -14,8 +14,8 @@ sockets = []
 def filter(input):
     output = {}
     for key in ['Event-Name','Job-Command','Job-UUID','Unique-ID','Caller-Logical-Direction','Caller-Caller-ID-Number','Caller-Destination-Number','Hangup-Cause']:
-            if key in input:
-                output[key] = input[key]
+        if key in input:
+            output[key] = input[key]
     return output
 
 async def request(data):
@@ -27,12 +27,17 @@ async def request(data):
 async def commands(websocket, path):
     global msisdn
     sockets.append(websocket)
-    while(loop.is_running()):
-        message = await websocket.recv()
-        print('COMMAND  : '+message)
-        command = json.loads(message)
-        if (command['action'] == 'call' and command['destination']):
-            await request('originate {origination_caller_id_number='+msisdn+'}sofia/gateway/mss/'+command['destination']+' &park()')
+    try:
+        while(loop.is_running()):
+            message = await websocket.recv()
+            print('COMMAND  : '+message)
+            command = json.loads(message)
+            if (command['action'] == 'call' and command['destination']):
+                await request('originate {origination_caller_id_number='+msisdn+'}sofia/gateway/mss/'+command['destination']+' &park()')
+    except:
+        print(sys.exc_info())
+    finally:
+        sockets.remove(websocket)
 
 async def events(host, loop):
     global connection    
