@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>WebSocket call control example</title>
+</head>
+<body>
+<script>
+if (window.WebSocket) {
+	window.onload = function() {
+	    socket = new WebSocket(`ws://${location.host}/socket`)
+		socket.onmessage = function(message) {
+		    var event = JSON.parse(message.data)
+		    console.log(event)
+		    switch (event['Event-Name']) {
+		    	case 'CHANNEL_PARK':
+		            socket.send(JSON.stringify({ uuid : event['Unique-ID'], action : 'answer' }))
+		            break
+		        case 'CHANNEL_ANSWER':
+		            socket.send(JSON.stringify({ uuid : event['Unique-ID'], action : 'play', file : 'welcome.wav' }))
+		            break
+		        case 'PLAYBACK_STOP':
+		            socket.send(JSON.stringify({ uuid : event['Unique-ID'], action : 'hangup' }))
+		            break
+		    }
+		}
+	    call.onclick = function() {
+	    	socket.send(JSON.stringify({ action : 'call', destination: destination.value }))
+	    }
+	}    
+} else {
+    console.log('Your browser does not support websockets')
+}
+</script>
+<input id='destination' placeholder='Destination'>
+<button id='call'>Call</button>
+</body>
+</html>
