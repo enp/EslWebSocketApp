@@ -34,8 +34,8 @@ async def commands(websocket, path):
             command = json.loads(message)
             if (command['action'] == 'call' and command['destination']):
                 await request('originate {origination_caller_id_number='+msisdn+'}sofia/gateway/mss/'+command['destination']+' &park()')
-    except:
-        print(sys.exc_info())
+    except BaseException as e:
+        print("ERROR    : {} : {}".format(type(e).__name__, e))
     finally:
         sockets.remove(websocket)
 
