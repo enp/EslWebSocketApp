@@ -34,6 +34,12 @@ async def commands(websocket, path):
             command = json.loads(message)
             if (command['action'] == 'call' and command['destination']):
                 await request('originate {origination_caller_id_number='+msisdn+'}sofia/gateway/mss/'+command['destination']+' &park()')
+            elif (command['action'] == 'answer' and command['uuid']):
+                await request('uuid_answer '+command['uuid'])
+            elif (command['action'] == 'play' and command['uuid'] and command['file']):
+                await request('uuid_broadcast '+ command['uuid']+' playback::/home/app/EslWebSocketApp/'+command['file'])
+            elif (command['action'] == 'hangup' and command['uuid']):
+                await request('uuid_kill  '+command['uuid']+' CALL_REJECTED')
     except BaseException as e:
         print("ERROR    : {} : {}".format(type(e).__name__, e))
     finally:
@@ -47,19 +53,15 @@ async def events(host, loop):
         global sockets
         for socket in sockets:
             await socket.send(json.dumps(event))
-        job = None
-        if event['Event-Name'] == 'CHANNEL_PARK':
-            await request('uuid_answer '+event['Unique-ID'])
-        elif event['Event-Name'] == 'CHANNEL_ANSWER':
-            await request('uuid_broadcast '+event['Unique-ID']+' playback::/opt/media/welcome.wav')
-        elif event['Event-Name'] == 'PLAYBACK_STOP':
-            await request('uuid_kill  '+event['Unique-ID']+' playback::/opt/media/welcome.wav')
 
 if len(sys.argv) == 2:
-    msisdn = sys.argv[1]
-    loop = asyncio.get_event_loop()    
-    connection = get_connection('sipbox', loop=loop)
-    connection.connect()
-    connection.subscribe(['BACKGROUND_JOB','CHANNEL_PARK','CHANNEL_ANSWER','PLAYBACK_START','PLAYBACK_STOP','CHANNEL_HANGUP'])    
-    loop.run_until_complete(websockets.serve(commands, 'localhost', 8765))
-    loop.run_until_complete(events('sipbox',loop))
+    try:
+        msisdn = sys.argv[1]
+        loop = asyncio.get_event_loop()    
+        connection = get_connection('sipbox', loop=loop)
+        connection.connect()
+        connection.subscribe(['BACKGROUND_JOB','CHANNEL_PARK','CHANNEL_ANSWER','PLAYBACK_START','PLAYBACK_STOP','CHANNEL_HANGUP'])    
+        loop.run_until_complete(websockets.serve(commands, 'localhost', 8765))
+        loop.run_until_complete(events('sipbox',loop))
+    except BaseException as e:
+        print("ERROR    : {} : {}".format(type(e).__name__, e))

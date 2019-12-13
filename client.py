@@ -14,7 +14,13 @@ async def handler(loop):
                 message = await websocket.recv()
                 event = json.loads(message)
                 print('EVENT    : '+json.dumps(event))
-                if event['Event-Name'] == "CHANNEL_HANGUP":
+                if event['Event-Name'] == 'CHANNEL_PARK':
+                    await websocket.send(json.dumps({ 'action' : 'answer', 'uuid' : event['Unique-ID'] }))
+                elif event['Event-Name'] == 'CHANNEL_ANSWER':
+                    await websocket.send(json.dumps({ 'action' : 'play', 'uuid' : event['Unique-ID'], 'file' : 'welcome.wav' }))
+                elif event['Event-Name'] == 'PLAYBACK_STOP':
+                    await websocket.send(json.dumps({ 'action' : 'hangup', 'uuid' : event['Unique-ID'] }))
+                elif event['Event-Name'] == 'CHANNEL_HANGUP':
                     await websocket.close()
     except BaseException as e:
         print("ERROR    : {} : {}".format(type(e).__name__, e))
