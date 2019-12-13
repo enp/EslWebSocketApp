@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<document type="freeswitch/xml">
+
+<section name="configuration">
+
+<configuration name="switch.conf">
+  <settings>
+    <param name="colorize-console" value="true"/>
+    <param name="max-sessions" value="10000"/>
+    <param name="sessions-per-second" value="1000"/>
+    <param name="loglevel" value="debug"/>
+  </settings>
+</configuration>
+
+<configuration name="modules.conf">
+  <modules>
+    <load module="mod_console"/>
+    <load module="mod_syslog"/>
+    <load module="mod_event_socket"/>
+    <load module="mod_sofia"/>
+    <load module="mod_dialplan_xml"/>
+    <load module="mod_dptools"/>
+    <load module="mod_commands"/>
+    <load module="mod_sndfile"/>
+  </modules>
+</configuration>
+
+<configuration name="console.conf">
+  <mappings>
+    <map name="all" value="console,debug,info,notice,warning,err,crit,alert"/>
+  </mappings>
+  <settings>
+    <param name="colorize" value="true"/>
+    <param name="loglevel" value="console"/>
+  </settings>
+</configuration>
+
+<configuration name="syslog.conf">
+  <settings>
+    <param name="facility" value="user"/>
+    <param name="ident" value="freeswitch"/>
+    <param name="loglevel" value="debug"/>
+    <param name="uuid" value="true"/>
+  </settings>
+</configuration>
+
+<configuration name="event_socket.conf">
+  <settings>
+    <param name="listen-ip" value="0.0.0.0"/>
+    <param name="listen-port" value="8021"/>
+    <param name="password" value="ClueCon"/>
+    <param name="apply-inbound-acl" value="any_v4.auto"/>
+  </settings>
+</configuration>
+
+<configuration name="sofia.conf">
+  <global_settings>
+    <param name="log-level" value="0"/>
+    <param name="debug-presence" value="0"/>
+  </global_settings>
+  <profiles>
+    <profile name="mss">
+      <domains>
+        <domain name="all" alias="false" parse="false"/>
+      </domains>
+      <settings>
+        <param name="context" value="mss"/>
+        <param name="sip-port" value="5060"/>
+        <param name="dialplan" value="XML"/>
+        <param name="sip-ip" value="10.0.0.2"/>
+        <param name="rtp-ip" value="10.0.0.3"/>
+        <param name="auth-calls" value="false"/>
+      </settings>
+      <gateways>
+        <gateway name="mss">
+          <param name="proxy" value="10.0.0.1"/>
+          <param name="register" value="false"/>
+          <param name="caller-id-in-from" value="true"/>
+        </gateway>
+      </gateways>
+    </profile>
+  </profiles>
+</configuration>
+
+</section>
+
+<section name="dialplan">
+  <context name="mss">
+    <extension name="mss">
+      <condition>
+        <action application="park"/>
+      </condition>
+    </extension>
+  </context>
+</section>
+
+</document>
